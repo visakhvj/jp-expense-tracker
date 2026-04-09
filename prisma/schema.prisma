@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  bills        Bill[]
+}
+
+model Bill {
+  id         String     @id @default(cuid())
+  userId     String
+  storeName  String
+  date       DateTime
+  totalAmount Float
+  category   String
+  imageUrl   String?
+  ocrRawText String?
+  memo       String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items      BillItem[]
+
+  @@index([userId])
+  @@index([date])
+  @@index([category])
+}
+
+model BillItem {
+  id       String @id @default(cuid())
+  billId   String
+  name     String
+  quantity Int    @default(1)
+  price    Float
+  category String?
+  bill     Bill   @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  @@index([billId])
+}
